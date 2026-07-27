@@ -102,8 +102,9 @@ public static class InfisicalConfigurationExtensions
         }
 
         // Map SCREAMING_SNAKE_CASE keys with '__' section separators to .NET's ':' convention.
+        // Handle both single underscore (CONNECTIONSTRINGS_WISEWIZARD) and double underscore (CONNECTIONSTRINGS__WISEWIZARD)
         return secrets.ToDictionary(
-            s => s.SecretKey.Replace("__", ":"),
+            s => s.SecretKey.Replace("__", ":").Replace("_", ":"),
             s => (string?)s.SecretValue);
     }
 
