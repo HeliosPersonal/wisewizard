@@ -39,7 +39,7 @@ public static class InfisicalConfigurationExtensions
         var hostUri = builder.Configuration["INFISICAL_SITE_URL"] ?? "https://eu.infisical.com";
         var environment = builder.Configuration["INFISICAL_ENVIRONMENT"]
             ?? MapAspNetEnvironment(builder.Environment.EnvironmentName);
-        var secretPath = builder.Configuration["INFISICAL_SECRET_PATH"] ?? "/";
+        var secretPath = builder.Configuration["INFISICAL_SECRET_PATH"] ?? "/app";
 
         var secrets = LoadSecrets(hostUri, clientId, clientSecret, projectId, environment, secretPath);
         builder.Configuration.AddInMemoryCollection(secrets);
