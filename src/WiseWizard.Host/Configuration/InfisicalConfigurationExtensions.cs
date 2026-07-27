@@ -75,7 +75,7 @@ public static class InfisicalConfigurationExtensions
         // Map SCREAMING_SNAKE_CASE keys with '__' section separators to .NET's ':' convention.
         return secrets.ToDictionary(
             s => s.SecretKey.Replace("__", ":"),
-            s => (string?)s.SecretValue);
+            s => (string?)s.SecretValue());
     }
 
     private static string MapAspNetEnvironment(string aspNetEnvironment) => aspNetEnvironment switch
