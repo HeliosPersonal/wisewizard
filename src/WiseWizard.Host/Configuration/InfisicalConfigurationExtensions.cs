@@ -55,32 +55,21 @@ public static class InfisicalConfigurationExtensions
         // Machine-identity (Universal Auth) login with the bootstrap credentials.
         client.Auth().UniversalAuth().LoginAsync(clientId, clientSecret).GetAwaiter().GetResult();
 
-        // Fetch secrets from all app sub-paths (like overflow does)
-        var secretPaths = secretPath == "/" 
-            ? new[] { "/app/connections", "/app/auth", "/app/services" }
-            : new[] { secretPath };
-
-        var allSecrets = new Dictionary<string, string?>();
-
-        foreach (var path in secretPaths)
+        var options = new ListSecretsOptions
         {
-            var options = new ListSecretsOptions
-            {
-                ProjectId = projectId,
-                EnvironmentSlug = environment,
-                SecretPath = path,
-                Recursive = true,
-                ExpandSecretReferences = true,
-            };
+            ProjectId = projectId,
+            EnvironmentSlug = environment,
+            SecretPath = secretPath,
+            Recursive = true,
+            ExpandSecretReferences = true,
+        };
 
-            var secrets = client.Secrets().ListAsync(options).GetAwaiter().GetResult();
-            foreach (var secret in secrets)
-            {
-                allSecrets[secret.SecretKey.Replace("__", ":")] = secret.SecretValue;
-            }
-        }
+        var secrets = client.Secrets().ListAsync(options).GetAwaiter().GetResult();
 
-        return allSecrets;
+        // Map SCREAMING_SNAKE_CASE keys with '__' section separators to .NET's ':' convention.
+        return secrets.ToDictionary(
+            s => s.SecretKey.Replace("__", ":"),
+            s => (string?)s.SecretValue);
     }
 
     private static string MapAspNetEnvironment(string aspNetEnvironment) => aspNetEnvironment switch
