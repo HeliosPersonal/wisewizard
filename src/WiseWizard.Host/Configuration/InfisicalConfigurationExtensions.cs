@@ -74,7 +74,7 @@ public static class InfisicalConfigurationExtensions
 
     private static string MapAspNetEnvironment(string aspNetEnvironment) => aspNetEnvironment switch
     {
-        "Production" => "prod",
+        "Production" => "production",
         "Staging" => "staging",
         _ => "dev",
     };
