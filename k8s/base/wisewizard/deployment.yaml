@@ -37,17 +37,17 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: infisical-creds
-                  key: client-id
+                  key: INFISICAL_CLIENT_ID
             - name: INFISICAL_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: infisical-creds
-                  key: client-secret
+                  key: INFISICAL_CLIENT_SECRET
             - name: INFISICAL_PROJECT_ID
               valueFrom:
                 secretKeyRef:
                   name: infisical-creds
-                  key: project-id
+                  key: INFISICAL_PROJECT_ID
             # The domain PostgreSQL connection string (CONNECTIONSTRINGS__WISEWIZARD →
             # ConnectionStrings:WiseWizard) is pulled from Infisical at runtime; Hangfire
             # shares that database under a `hangfire` schema (ADR-0007).

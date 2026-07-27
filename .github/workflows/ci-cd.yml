@@ -178,9 +178,9 @@ jobs:
 
       - name: Inject Infisical secrets
         run: |
-          sed -i "s|client-id: \"PLACEHOLDER_WILL_BE_REPLACED_BY_CICD\"|client-id: \"${{ secrets.INFISICAL_CLIENT_ID }}\"|g" k8s/base/infisical/secret.yaml
-          sed -i "s|client-secret: \"PLACEHOLDER_WILL_BE_REPLACED_BY_CICD\"|client-secret: \"${{ secrets.INFISICAL_CLIENT_SECRET }}\"|g" k8s/base/infisical/secret.yaml
-          sed -i "s|project-id: \"PLACEHOLDER_WILL_BE_REPLACED_BY_CICD\"|project-id: \"${{ secrets.INFISICAL_PROJECT_ID }}\"|g" k8s/base/infisical/secret.yaml
+          sed -i "s|INFISICAL_CLIENT_ID: \"PLACEHOLDER_WILL_BE_REPLACED_BY_CICD\"|INFISICAL_CLIENT_ID: \"${{ secrets.INFISICAL_CLIENT_ID }}\"|g" k8s/base/infisical/secret.yaml
+          sed -i "s|INFISICAL_CLIENT_SECRET: \"PLACEHOLDER_WILL_BE_REPLACED_BY_CICD\"|INFISICAL_CLIENT_SECRET: \"${{ secrets.INFISICAL_CLIENT_SECRET }}\"|g" k8s/base/infisical/secret.yaml
+          sed -i "s|INFISICAL_PROJECT_ID: \"PLACEHOLDER_WILL_BE_REPLACED_BY_CICD\"|INFISICAL_PROJECT_ID: \"${{ secrets.INFISICAL_PROJECT_ID }}\"|g" k8s/base/infisical/secret.yaml
 
       - name: Preview manifests
         working-directory: ./k8s/overlays/production
