@@ -52,6 +52,8 @@ spec:
               value: "https://eu.infisical.com"
             - name: INFISICAL_ENVIRONMENT
               value: "production"
+            - name: INFISICAL_SECRET_PATH
+              value: "/app"
             # The domain PostgreSQL connection string (CONNECTIONSTRINGS__WISEWIZARD →
             # ConnectionStrings:WiseWizard) is pulled from Infisical at runtime; Hangfire
             # shares that database under a `hangfire` schema (ADR-0007).

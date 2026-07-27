@@ -33,6 +33,9 @@ var anthropicApiKey = builder.AddParameter("anthropic-api-key", secret: true);
 var telegramBotToken = builder.AddParameter("telegram-bot-token", secret: true);
 var telegramOwnerChatId = builder.AddParameter("telegram-owner-chat-id");
 var ibkrAccountId = builder.AddParameter("ibkr-account-id");
+var infisicalClientId = builder.AddParameter("infisical-client-id", secret: true);
+var infisicalClientSecret = builder.AddParameter("infisical-client-secret", secret: true);
+var infisicalProjectId = builder.AddParameter("infisical-project-id", secret: true);
 
 builder.AddProject<Projects.WiseWizard_Host>("wisewizard")
     .WithReference(domainDb)
@@ -41,6 +44,12 @@ builder.AddProject<Projects.WiseWizard_Host>("wisewizard")
     .WithEnvironment("Anthropic__ApiKey", anthropicApiKey)
     .WithEnvironment("Telegram__BotToken", telegramBotToken)
     .WithEnvironment("Telegram__OwnerChatId", telegramOwnerChatId)
-    .WithEnvironment("Ibkr__AccountId", ibkrAccountId);
+    .WithEnvironment("Ibkr__AccountId", ibkrAccountId)
+    .WithEnvironment("INFISICAL_CLIENT_ID", infisicalClientId)
+    .WithEnvironment("INFISICAL_CLIENT_SECRET", infisicalClientSecret)
+    .WithEnvironment("INFISICAL_PROJECT_ID", infisicalProjectId)
+    .WithEnvironment("INFISICAL_SITE_URL", "https://eu.infisical.com")
+    .WithEnvironment("INFISICAL_ENVIRONMENT", "dev")
+    .WithEnvironment("INFISICAL_SECRET_PATH", "/app");
 
 builder.Build().Run();
