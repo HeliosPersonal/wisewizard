@@ -36,7 +36,7 @@ public static class InfisicalConfigurationExtensions
             return;
         }
 
-        var hostUri = builder.Configuration["INFISICAL_SITE_URL"] ?? "https://app.infisical.com";
+        var hostUri = builder.Configuration["INFISICAL_SITE_URL"] ?? "https://eu.infisical.com";
         var environment = builder.Configuration["INFISICAL_ENVIRONMENT"]
             ?? MapAspNetEnvironment(builder.Environment.EnvironmentName);
         var secretPath = builder.Configuration["INFISICAL_SECRET_PATH"] ?? "/";
