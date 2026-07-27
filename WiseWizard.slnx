@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/WiseWizard.Bot/WiseWizard.Bot.csproj" />
+    <Project Path="src/WiseWizard.Core/WiseWizard.Core.csproj" />
+    <Project Path="src/WiseWizard.Host/WiseWizard.Host.csproj" />
+    <Project Path="src/WiseWizard.Infrastructure/WiseWizard.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Aspire/">
+    <Project Path="src/Aspire/WiseWizard.AppHost/WiseWizard.AppHost.csproj" />
+    <Project Path="src/Aspire/WiseWizard.ServiceDefaults/WiseWizard.ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WiseWizard.Bot.Tests/WiseWizard.Bot.Tests.csproj" />
+    <Project Path="tests/WiseWizard.Core.Tests/WiseWizard.Core.Tests.csproj" />
+    <Project Path="tests/WiseWizard.Infrastructure.Tests/WiseWizard.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

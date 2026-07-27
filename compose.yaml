@@ -1,0 +1,54 @@
+# Local run of the built WiseWizard image against a PostgreSQL container (ADR-0007).
+# For the richer local-dev experience (Aspire dashboard, traces, auto-provisioned
+# Postgres + user-secrets), prefer:  dotnet run --project src/Aspire/WiseWizard.AppHost
+#
+# Secrets: leave INFISICAL_* unset to run in "dev" mode (appsettings + env only).
+# Provide a real Anthropic key / Telegram token via a local .env file (gitignored)
+# or set INFISICAL_* to pull them from Infisical.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: wisewizard
+      POSTGRES_PASSWORD: wisewizard-dev
+      POSTGRES_DB: wisewizard
+    ports:
+      - "5432:5432"
+    volumes:
+      - wisewizard-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wisewizard"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  wisewizard:
+    build:
+      context: .
+      dockerfile: src/WiseWizard.Host/Dockerfile
+    image: ghcr.io/heliospersonal/wisewizard:local
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080" # /health and the /hangfire dashboard
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # Domain PostgreSQL (Hangfire shares this DB under a `hangfire` schema).
+      ConnectionStrings__WiseWizard: "Host=postgres;Port=5432;Database=wisewizard;Username=wisewizard;Password=wisewizard-dev"
+      # Uncomment to pull secrets from Infisical instead of env/appsettings:
+      # INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID}
+      # INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET}
+      # INFISICAL_PROJECT_ID: ${INFISICAL_PROJECT_ID}
+      # INFISICAL_ENVIRONMENT: dev
+    env_file:
+      - path: .env
+        required: false
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  wisewizard-pgdata:

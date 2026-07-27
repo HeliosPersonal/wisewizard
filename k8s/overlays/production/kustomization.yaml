@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: apps-production
+
+resources:
+  - ../../base
+
+images:
+  - name: ghcr.io/heliospersonal/wisewizard
+    newTag: SHA_REPLACED_BY_CICD
+
+configMapGenerator:
+  - name: wisewizard-config
+    literals:
+      - ibkr_gateway_base_url=https://localhost:5000/
+      - sec_user_agent=WiseWizard/1.0 (personal use; contact owner@example.com)
+
+patches:
+  - target:
+      kind: Deployment
+      name: wisewizard
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: ASPNETCORE_ENVIRONMENT
+          value: Production

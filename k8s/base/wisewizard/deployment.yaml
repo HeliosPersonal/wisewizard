@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wisewizard
+  labels:
+    app: wisewizard
+    app.kubernetes.io/part-of: wisewizard
+spec:
+  replicas: 1
+  # Exactly one instance: a single Telegram long-poll and one nightly run (plus the
+  # daily-2FA broker session) mean this must never scale beyond 1. Recreate avoids two
+  # pods racing the Telegram poll / Hangfire schedule. Domain state is in PostgreSQL.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: wisewizard
+  template:
+    metadata:
+      labels:
+        app: wisewizard
+        app.kubernetes.io/part-of: wisewizard
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: wisewizard
+          # Image tag is patched per-overlay (overlays/staging patches to the built :<sha>).
+          image: ghcr.io/heliospersonal/wisewizard:latest
+          ports:
+            - containerPort: 8080
+          env:
+            # --- Infisical bootstrap: only the machine-identity id/secret/project live in
+            # the cluster; the pod's Infisical SDK pulls every real secret at runtime
+            # (Anthropic key, Telegram token, IBKR account id). ---
+            - name: INFISICAL_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: infisical-creds
+                  key: client-id
+            - name: INFISICAL_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: infisical-creds
+                  key: client-secret
+            - name: INFISICAL_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: infisical-creds
+                  key: project-id
+            # The domain PostgreSQL connection string (CONNECTIONSTRINGS__WISEWIZARD →
+            # ConnectionStrings:WiseWizard) is pulled from Infisical at runtime; Hangfire
+            # shares that database under a `hangfire` schema (ADR-0007).
+            # --- Non-secret config from the overlay-generated ConfigMap. ---
+            - name: Ibkr__GatewayBaseUrl
+              valueFrom:
+                configMapKeyRef:
+                  name: wisewizard-config
+                  key: ibkr_gateway_base_url
+            - name: Ingestion__SecUserAgent
+              valueFrom:
+                configMapKeyRef:
+                  name: wisewizard-config
+                  key: sec_user_agent
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+
+        # --- IBKR Client Portal gateway sidecar (PLACEHOLDER) ---------------------
+        # WiseWizard reads the portfolio read-only over the gateway's local REST API.
+        # The gateway must run in this same pod so the app reaches it on localhost
+        # (Ibkr__GatewayBaseUrl = https://localhost:5000/ in the staging overlay).
+        # Supply your own gateway image (IBKR does not publish one) and complete the
+        # daily 2FA re-auth (ADR-0006) — e.g. via the IBKR mobile app when prompted.
+        # Uncomment and set the image to enable:
+        #
+        # - name: ibkr-gateway
+        #   image: ghcr.io/heliospersonal/ibkr-clientportal:latest
+        #   ports:
+        #     - containerPort: 5000
+        #   resources:
+        #     requests: { cpu: 50m, memory: 256Mi }
+        #     limits:   { cpu: "500m", memory: 512Mi }

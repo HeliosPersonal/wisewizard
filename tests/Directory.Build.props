@@ -1,0 +1,16 @@
+<Project>
+  <!-- Inherit the repo-root build settings (TargetFramework, nullable, warnings-as-errors). -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!-- Coverage gate for all test projects: line + branch must be > 95% (CLAUDE.md).
+       Applied when CollectCoverage=true (e.g. in CI or via ./coverage.sh). The Host
+       composition root and code marked [ExcludeFromCodeCoverage] are excluded. -->
+  <PropertyGroup Condition="'$(CollectCoverage)' == 'true'">
+    <CoverletOutputFormat>cobertura</CoverletOutputFormat>
+    <Threshold>95</Threshold>
+    <ThresholdType>line,branch</ThresholdType>
+    <ThresholdStat>total</ThresholdStat>
+    <ExcludeByAttribute>GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
+    <Exclude>[WiseWizard.Host]*</Exclude>
+  </PropertyGroup>
+</Project>
