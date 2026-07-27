@@ -86,7 +86,15 @@ public static class InfisicalConfigurationExtensions
             };
             var rootSecrets = client.Secrets().ListAsync(rootOptions).GetAwaiter().GetResult();
             Console.WriteLine($"[Infisical] Loaded {rootSecrets.Count()} secret(s) from root /");
-            secrets.AddRange(rootSecrets);
+            
+            // Add root secrets only if not already present (avoid duplicates, prefer /app over /)
+            foreach (var rootSecret in rootSecrets)
+            {
+                if (!secrets.Any(s => s.SecretKey == rootSecret.SecretKey))
+                {
+                    secrets.Add(rootSecret);
+                }
+            }
         }
 
         // Map SCREAMING_SNAKE_CASE keys with '__' section separators to .NET's ':' convention.
