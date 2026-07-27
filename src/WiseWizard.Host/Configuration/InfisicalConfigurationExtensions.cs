@@ -65,6 +65,12 @@ public static class InfisicalConfigurationExtensions
         };
 
         var secrets = client.Secrets().ListAsync(options).GetAwaiter().GetResult();
+        
+        Console.WriteLine($"[Infisical] Loaded {secrets.Count} secret(s) from {hostUri} / {environment} / {secretPath}");
+        foreach (var secret in secrets)
+        {
+            Console.WriteLine($"  - {secret.SecretKey} -> {secret.SecretKey.Replace("__", ":")}");
+        }
 
         // Map SCREAMING_SNAKE_CASE keys with '__' section separators to .NET's ':' convention.
         return secrets.ToDictionary(
