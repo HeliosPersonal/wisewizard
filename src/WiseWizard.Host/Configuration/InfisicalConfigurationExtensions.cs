@@ -64,12 +64,29 @@ public static class InfisicalConfigurationExtensions
             ExpandSecretReferences = true,
         };
 
-        var secrets = client.Secrets().ListAsync(options).GetAwaiter().GetResult();
+        var secrets = client.Secrets().ListAsync(options).GetAwaiter().GetResult().ToList();
         
-        Console.WriteLine($"[Infisical] Loaded {secrets.Count()} secret(s) from {hostUri} / {environment} / {secretPath}");
+        Console.WriteLine($"[Infisical] Loaded {secrets.Count} secret(s) from {hostUri} / {environment} / {secretPath}");
         foreach (var secret in secrets)
         {
             Console.WriteLine($"  - {secret.SecretKey} -> {secret.SecretKey.Replace("__", ":")}");
+        }
+
+        // If CONNECTIONSTRINGS__WISEWIZARD not found in /app, also query root path
+        if (!secrets.Any(s => s.SecretKey == "CONNECTIONSTRINGS__WISEWIZARD") && secretPath != "/")
+        {
+            Console.WriteLine($"[Infisical] CONNECTIONSTRINGS__WISEWIZARD not found in {secretPath}, querying root /");
+            var rootOptions = new ListSecretsOptions
+            {
+                ProjectId = projectId,
+                EnvironmentSlug = environment,
+                SecretPath = "/",
+                Recursive = true,
+                ExpandSecretReferences = true,
+            };
+            var rootSecrets = client.Secrets().ListAsync(rootOptions).GetAwaiter().GetResult();
+            Console.WriteLine($"[Infisical] Loaded {rootSecrets.Count()} secret(s) from root /");
+            secrets.AddRange(rootSecrets);
         }
 
         // Map SCREAMING_SNAKE_CASE keys with '__' section separators to .NET's ':' convention.
