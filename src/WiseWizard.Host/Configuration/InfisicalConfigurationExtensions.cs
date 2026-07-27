@@ -86,6 +86,10 @@ public static class InfisicalConfigurationExtensions
             };
             var rootSecrets = client.Secrets().ListAsync(rootOptions).GetAwaiter().GetResult();
             Console.WriteLine($"[Infisical] Loaded {rootSecrets.Count()} secret(s) from root /");
+            foreach (var rootSecret in rootSecrets)
+            {
+                Console.WriteLine($"  - {rootSecret.SecretKey}");
+            }
             
             // Add root secrets only if not already present (avoid duplicates, prefer /app over /)
             foreach (var rootSecret in rootSecrets)
