@@ -7,6 +7,7 @@ using WiseWizard.Host.Configuration;
 using WiseWizard.Host.HostedServices;
 using WiseWizard.Host.Jobs;
 using WiseWizard.Infrastructure;
+using WiseWizard.Infrastructure.Persistence;
 using WiseWizard.Infrastructure.Llm;
 using WiseWizard.ServiceDefaults;
 
@@ -94,5 +95,8 @@ app.MapHealthChecks("/health");
 
 // Hangfire dashboard — bound to the pod only; expose via port-forward, never Ingress.
 app.MapHangfireDashboard("/hangfire");
+
+// Ensure the PostgreSQL database exists before starting hosted services.
+await SchemaInitializer.EnsureDatabaseCreatedAsync(domainDb);
 
 app.Run();

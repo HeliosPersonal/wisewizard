@@ -103,6 +103,34 @@ public static class SchemaInitializer
         );
         """;
 
+    /// <summary>
+    /// Ensures the target database exists, creating it if necessary. Connects to the
+    /// <c>postgres</c> maintenance database so it can run <c>CREATE DATABASE</c> outside
+    /// a transaction. Safe to call on every startup.
+    /// </summary>
+    public static async Task EnsureDatabaseCreatedAsync(string connectionString, CancellationToken ct = default)
+    {
+        var csb = new NpgsqlConnectionStringBuilder(connectionString);
+        var databaseName = csb.Database ?? throw new InvalidOperationException("Connection string must specify a Database.");
+
+        csb.Database = "postgres";
+        await using var conn = new NpgsqlConnection(csb.ToString());
+        await conn.OpenAsync(ct);
+
+        await using var checkCmd = conn.CreateCommand();
+        checkCmd.CommandText = "SELECT COUNT(1) FROM pg_database WHERE datname = @name";
+        checkCmd.Parameters.AddWithValue("name", databaseName);
+        var exists = (long)(await checkCmd.ExecuteScalarAsync(ct))! > 0;
+
+        if (!exists)
+        {
+            await using var createCmd = conn.CreateCommand();
+            // Database names cannot be parameterised; the name comes from our own config.
+            createCmd.CommandText = $"CREATE DATABASE \"{databaseName}\"";
+            await createCmd.ExecuteNonQueryAsync(ct);
+        }
+    }
+
     /// <summary>Runs the create script against the given open connection.</summary>
     public static async Task InitializeAsync(NpgsqlConnection connection, CancellationToken ct = default)
     {
