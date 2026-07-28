@@ -1,24 +1,36 @@
 # IBKR Client Portal Gateway configuration
-# Tuned for containerised deployment — no IP allowlist, port 5000, self-signed TLS.
+# Tuned for containerised deployment — allow cluster IPs, port 5000, self-signed TLS.
 # The gateway always uses HTTPS; WiseWizard's HttpClient must trust the self-signed cert.
 
+ip2loc: "US"
+proxyRemoteSsl: true
+proxyRemoteHost: "https://api.ibkr.com"
 listenPort: 5000
 listenSsl: true
-sslCert: null
-sslPwd: null
+ccp: false
+svcEnvironment: "v1"
+sslCert: "vertx.jks"
+sslPwd: "mywebapi"
+authDelay: 3000
+portalBaseURL: ""
 
-# Accept connections from any pod IP in the cluster.
-allowedOrigins: "*"
+serverOptions:
+    blockedThreadCheckInterval: 1000000
+    eventLoopPoolSize: 20
+    workerPoolSize: 20
+    maxWorkerExecuteTime: 100
+    internalBlockingPoolSize: 20
 
-# Keep sessions alive longer to survive brief network blips.
-liveSessionToken: true
-maSession: true
+cors:
+    origin.allowed: "*"
+    allowCredentials: false
 
-proxyRemoteHost: api.ibkr.com
-proxyRemotePort: 443
+webApps:
+    - name: "demo"
+      index: "index.html"
 
-# Minimal set of API groups WiseWizard needs (read-only portfolio access).
-publishedApis:
-  - portfolio
-  - account
-  - contract
+# Allow all pod/cluster IPs to reach the gateway.
+ips:
+  allow:
+    - "*"
+  deny: []
