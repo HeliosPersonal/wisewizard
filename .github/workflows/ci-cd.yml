@@ -190,6 +190,11 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
+      - name: Import pre-existing resources
+        run: |
+          terraform import kubernetes_secret_v1.ibkr_tls apps-production/cloudflare-origin 2>&1 \
+            | grep -v "^$" || true
+
       - name: Terraform Plan
         id: plan
         run: |
