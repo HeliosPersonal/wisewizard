@@ -87,19 +87,3 @@ spec:
             limits:
               cpu: "1"
               memory: 512Mi
-
-        # --- IBKR Client Portal gateway sidecar (PLACEHOLDER) ---------------------
-        # WiseWizard reads the portfolio read-only over the gateway's local REST API.
-        # The gateway must run in this same pod so the app reaches it on localhost
-        # (Ibkr__GatewayBaseUrl = https://localhost:5000/ in the staging overlay).
-        # Supply your own gateway image (IBKR does not publish one) and complete the
-        # daily 2FA re-auth (ADR-0006) — e.g. via the IBKR mobile app when prompted.
-        # Uncomment and set the image to enable:
-        #
-        # - name: ibkr-gateway
-        #   image: ghcr.io/heliospersonal/ibkr-clientportal:latest
-        #   ports:
-        #     - containerPort: 5000
-        #   resources:
-        #     requests: { cpu: 50m, memory: 256Mi }
-        #     limits:   { cpu: "500m", memory: 512Mi }

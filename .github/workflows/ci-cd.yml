@@ -86,13 +86,78 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ============================================================================
+  # BUILD & PUSH IBKR GATEWAY IMAGE
+  # Only rebuilds when docker/ibkr-gateway/** changes (gateway version is stable).
+  # ============================================================================
+  build-gateway-image:
+    name: Build & Push IBKR Gateway Image
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    outputs:
+      gateway_tag: ${{ steps.gateway_tag.outputs.tag }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Check if gateway changed
+        id: gateway_changed
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -q "^docker/ibkr-gateway/"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Lowercase owner
+        id: repo_owner
+        run: |
+          echo "owner_lc=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Login to GitHub Container Registry
+        if: steps.gateway_changed.outputs.changed == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        if: steps.gateway_changed.outputs.changed == 'true'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build & push gateway image
+        if: steps.gateway_changed.outputs.changed == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: docker/ibkr-gateway
+          file: docker/ibkr-gateway/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/ibkr-gateway:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_REGISTRY }}/${{ steps.repo_owner.outputs.owner_lc }}/ibkr-gateway:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Output gateway tag
+        id: gateway_tag
+        run: |
+          if [ "${{ steps.gateway_changed.outputs.changed }}" == "true" ]; then
+            echo "tag=${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
+
+  # ============================================================================
   # TERRAFORM - Provision infrastructure (database)
   # Runs after images are built. Creates the wisewizard database in the shared
   # postgres instance if it does not already exist.
   # ============================================================================
   terraform:
     name: Terraform
-    needs: build-image
+    needs: [build-image, build-gateway-image]
     runs-on: self-hosted
     environment: production
     defaults:
@@ -146,7 +211,7 @@ jobs:
   # ============================================================================
   deploy:
     name: Deploy to Production
-    needs: [build-image, terraform]
+    needs: [build-image, build-gateway-image, terraform]
     runs-on: self-hosted
     environment: production
     env:
@@ -171,10 +236,11 @@ jobs:
             --namespace=${{ env.NAMESPACE }} \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Update image tag
+      - name: Update image tags
         working-directory: ./k8s/overlays/production
         run: |
           sed -i "s|newTag: SHA_REPLACED_BY_CICD|newTag: ${{ env.IMAGE_TAG }}|g" kustomization.yaml
+          sed -i "s|newTag: GATEWAY_SHA_REPLACED_BY_CICD|newTag: ${{ needs.build-gateway-image.outputs.gateway_tag || 'latest' }}|g" kustomization.yaml
 
       - name: Inject Infisical secrets
         run: |
@@ -191,14 +257,16 @@ jobs:
         run: kubectl apply -k .
 
       - name: Wait for rollout
-        run: kubectl rollout status deployment/wisewizard -n ${{ env.NAMESPACE }} --timeout=10m
+        run: |
+          kubectl rollout status deployment/wisewizard -n ${{ env.NAMESPACE }} --timeout=10m
+          kubectl rollout status deployment/ibkr-gateway -n ${{ env.NAMESPACE }} --timeout=5m
 
       - name: Deployment status
         run: |
           echo "=== Pods ==="
           kubectl get pods -n ${{ env.NAMESPACE }}
-          echo "=== Logs ==="
-          kubectl logs -n ${{ env.NAMESPACE }} -l app=wisewizard --tail=30 --prefix=true || true
+          echo "=== WiseWizard logs ==="
+          kubectl logs -n ${{ env.NAMESPACE }} -l app=wisewizard --tail=20 --prefix=true || true
 
       - name: Smoke test
         run: |

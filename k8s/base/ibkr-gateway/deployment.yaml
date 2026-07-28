@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ibkr-gateway
+  labels:
+    app: ibkr-gateway
+    app.kubernetes.io/part-of: wisewizard
+spec:
+  replicas: 1
+  # Single instance — IBKR session is stateful and bound to one gateway process.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: ibkr-gateway
+  template:
+    metadata:
+      labels:
+        app: ibkr-gateway
+        app.kubernetes.io/part-of: wisewizard
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: ibkr-gateway
+          image: ghcr.io/heliospersonal/ibkr-gateway:latest
+          ports:
+            - containerPort: 5000
+          # Gateway uses HTTPS with a self-signed cert; health check uses the
+          # /v1/api/tickle endpoint which keeps the session alive (ADR-0006).
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "wget -qO- --no-check-certificate https://localhost:5000/v1/api/tickle || exit 1"
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: "500m"
+              memory: 512Mi

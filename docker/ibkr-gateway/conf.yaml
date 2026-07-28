@@ -1,0 +1,24 @@
+# IBKR Client Portal Gateway configuration
+# Tuned for containerised deployment — no IP allowlist, port 5000, self-signed TLS.
+# The gateway always uses HTTPS; WiseWizard's HttpClient must trust the self-signed cert.
+
+listenPort: 5000
+listenSsl: true
+sslCert: null
+sslPwd: null
+
+# Accept connections from any pod IP in the cluster.
+allowedOrigins: "*"
+
+# Keep sessions alive longer to survive brief network blips.
+liveSessionToken: true
+maSession: true
+
+proxyRemoteHost: api.ibkr.com
+proxyRemotePort: 443
+
+# Minimal set of API groups WiseWizard needs (read-only portfolio access).
+publishedApis:
+  - portfolio
+  - account
+  - contract
