@@ -43,7 +43,7 @@ resource "kubernetes_ingress_v1" "ibkr_gateway" {
       # Basic Auth guard
       "nginx.ingress.kubernetes.io/auth-type"   = "basic"
       "nginx.ingress.kubernetes.io/auth-secret" = kubernetes_secret_v1.ibkr_basic_auth.metadata[0].name
-      "nginx.ingress.kubernetes.io/auth-realm"  = "IBKR Gateway — Owner only"
+      "nginx.ingress.kubernetes.io/auth-realm"  = "IBKR Gateway"
 
       # Gateway uses self-signed HTTPS; tell nginx to use HTTPS backend and skip cert verify
       "nginx.ingress.kubernetes.io/backend-protocol"             = "HTTPS"
