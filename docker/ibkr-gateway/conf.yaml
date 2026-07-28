@@ -32,5 +32,9 @@ webApps:
 # Allow all pod/cluster IPs to reach the gateway.
 ips:
   allow:
-    - "*"
+    - 192.*
+    - 131.216.*
+    - 127.0.0.1
+    - 172.*
+    - 10.*
   deny: []
