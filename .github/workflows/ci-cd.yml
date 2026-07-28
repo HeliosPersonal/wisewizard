@@ -194,6 +194,10 @@ jobs:
         run: |
           terraform import kubernetes_secret_v1.ibkr_tls apps-production/cloudflare-origin 2>&1 \
             | grep -v "^$" || true
+          terraform import kubernetes_secret_v1.ibkr_basic_auth apps-production/ibkr-basic-auth 2>&1 \
+            | grep -v "^$" || true
+          terraform import kubernetes_ingress_v1.ibkr_gateway apps-production/ibkr-gateway 2>&1 \
+            | grep -v "^$" || true
 
       - name: Terraform Plan
         id: plan
