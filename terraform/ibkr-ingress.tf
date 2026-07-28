@@ -107,10 +107,10 @@ resource "kubernetes_secret_v1" "ibkr_tls" {
     namespace = local.namespace_production
   }
 
-  type        = "kubernetes.io/tls"
-  binary_data = data.kubernetes_secret_v1.cloudflare_origin.binary_data
+  type = "kubernetes.io/tls"
+  data = data.kubernetes_secret_v1.cloudflare_origin.data
 
   lifecycle {
-    ignore_changes = [binary_data]
+    ignore_changes = [data]
   }
 }
