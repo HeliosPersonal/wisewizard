@@ -165,11 +165,12 @@ jobs:
         working-directory: terraform
 
     env:
-      ARM_CLIENT_ID:       ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET:   ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID:       ${{ secrets.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      TF_VAR_pg_password:  ${{ secrets.PG_PASSWORD }}
+      ARM_CLIENT_ID:                      ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET:                  ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID:                      ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID:                ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      TF_VAR_pg_password:                 ${{ secrets.PG_PASSWORD }}
+      TF_VAR_ibkr_basic_auth_credentials: ${{ secrets.IBKR_BASIC_AUTH_CREDENTIALS }}
 
     steps:
       - name: Checkout code

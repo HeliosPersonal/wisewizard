@@ -9,3 +9,9 @@ variable "pg_password" {
   sensitive   = true
   description = "PostgreSQL admin password (same as set in infrastructure-helios)"
 }
+
+variable "ibkr_basic_auth_credentials" {
+  type        = string
+  sensitive   = true
+  description = "htpasswd-formatted credentials for the IBKR gateway basic-auth Ingress. Generate with: htpasswd -nb <username> <password>"
+}

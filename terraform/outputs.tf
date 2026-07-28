@@ -5,3 +5,9 @@ output "connection_string_template" {
   description = "Npgsql connection string (no password). Store in Infisical as CONNECTIONSTRINGS__WISEWIZARD with ;Password=<pg_password> appended."
   sensitive   = false
 }
+
+output "ibkr_gateway_url" {
+  value       = "https://${local.ibkr_host}"
+  description = "URL to open in browser for daily IBKR 2FA re-authentication."
+  sensitive   = false
+}
