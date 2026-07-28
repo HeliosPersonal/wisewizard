@@ -22,6 +22,10 @@ RUN dotnet publish src/WiseWizard.Host/WiseWizard.Host.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
+# libgssapi_krb5 is required by Npgsql for Kerberos/GSSAPI; not in aspnet base image.
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends libgssapi-krb5-2 && rm -rf /var/lib/apt/lists/*
+
 # Run as the non-root `app` user shipped by the aspnet image (uid 1654).
 USER app
 
