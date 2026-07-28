@@ -105,7 +105,13 @@ public static class DependencyInjection
         });
 
         // Broker reader over the local Client Portal gateway.
+        // The gateway uses a self-signed certificate; we bypass server cert validation
+        // for this named client only — the gateway is a trusted local/cluster service.
         services.AddHttpClient<IBrokerReader>(c => c.BaseAddress = new Uri(options.IbkrGatewayBaseUrl))
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            })
             .AddTypedClient<IBrokerReader>((http, _) =>
                 new ClientPortalBrokerReader(http, options.IbkrAccountId));
 
