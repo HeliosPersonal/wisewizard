@@ -26,14 +26,13 @@ spec:
           image: ghcr.io/heliospersonal/ibkr-gateway:latest
           ports:
             - containerPort: 5000
-          # Gateway uses HTTPS with a self-signed cert; health check uses the
-          # /v1/api/tickle endpoint which keeps the session alive (ADR-0006).
+          # TCP liveness — just verify the JVM is up and the port is bound.
+          # Do NOT use /v1/api/tickle here: that endpoint requires an authenticated
+          # IBKR session, so it would fail on every cold start and restart-loop
+          # the pod before the owner can complete the daily 2FA.
           livenessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - "wget -qO- --no-check-certificate https://localhost:5000/v1/api/tickle || exit 1"
+            tcpSocket:
+              port: 5000
             initialDelaySeconds: 30
             periodSeconds: 60
             failureThreshold: 5
