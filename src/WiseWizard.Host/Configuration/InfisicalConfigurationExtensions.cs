@@ -64,47 +64,11 @@ public static class InfisicalConfigurationExtensions
             ExpandSecretReferences = true,
         };
 
-        var secrets = client.Secrets().ListAsync(options).GetAwaiter().GetResult().ToList();
-        
-        Console.WriteLine($"[Infisical] Loaded {secrets.Count} secret(s) from {hostUri} / {environment} / {secretPath}");
-        foreach (var secret in secrets)
-        {
-            Console.WriteLine($"  - {secret.SecretKey} -> {secret.SecretKey.Replace("__", ":")}");
-        }
-
-        // If CONNECTIONSTRINGS__WISEWIZARD not found in /app, also query root path
-        if (!secrets.Any(s => s.SecretKey == "CONNECTIONSTRINGS__WISEWIZARD") && secretPath != "/")
-        {
-            Console.WriteLine($"[Infisical] CONNECTIONSTRINGS__WISEWIZARD not found in {secretPath}, querying root /");
-            var rootOptions = new ListSecretsOptions
-            {
-                ProjectId = projectId,
-                EnvironmentSlug = environment,
-                SecretPath = "/",
-                Recursive = true,
-                ExpandSecretReferences = true,
-            };
-            var rootSecrets = client.Secrets().ListAsync(rootOptions).GetAwaiter().GetResult();
-            Console.WriteLine($"[Infisical] Loaded {rootSecrets.Count()} secret(s) from root /");
-            foreach (var rootSecret in rootSecrets)
-            {
-                Console.WriteLine($"  - {rootSecret.SecretKey}");
-            }
-            
-            // Add root secrets only if not already present (avoid duplicates, prefer /app over /)
-            foreach (var rootSecret in rootSecrets)
-            {
-                if (!secrets.Any(s => s.SecretKey == rootSecret.SecretKey))
-                {
-                    secrets.Add(rootSecret);
-                }
-            }
-        }
+        var secrets = client.Secrets().ListAsync(options).GetAwaiter().GetResult();
 
         // Map SCREAMING_SNAKE_CASE keys with '__' section separators to .NET's ':' convention.
-        // Handle both single underscore (CONNECTIONSTRINGS_WISEWIZARD) and double underscore (CONNECTIONSTRINGS__WISEWIZARD)
         return secrets.ToDictionary(
-            s => s.SecretKey.Replace("__", ":").Replace("_", ":"),
+            s => s.SecretKey.Replace("__", ":"),
             s => (string?)s.SecretValue);
     }
 
