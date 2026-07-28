@@ -22,6 +22,14 @@ services:
       timeout: 3s
       retries: 10
 
+  ibkr-gateway:
+    build:
+      context: docker/ibkr-gateway
+      dockerfile: Dockerfile
+    image: ghcr.io/heliospersonal/ibkr-gateway:local
+    ports:
+      - "5000:5000"  # HTTPS — open https://localhost:5000 in browser to complete 2FA
+
   wisewizard:
     build:
       context: .
@@ -30,12 +38,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      ibkr-gateway:
+        condition: service_started
     ports:
       - "8080:8080" # /health and the /hangfire dashboard
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       # Domain PostgreSQL (Hangfire shares this DB under a `hangfire` schema).
       ConnectionStrings__WiseWizard: "Host=postgres;Port=5432;Database=wisewizard;Username=wisewizard;Password=wisewizard-dev"
+      Ibkr__GatewayBaseUrl: "https://ibkr-gateway:5000/"
       # Uncomment to pull secrets from Infisical instead of env/appsettings:
       # INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID}
       # INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET}
